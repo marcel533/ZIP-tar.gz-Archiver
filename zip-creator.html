@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZIP Archiver</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f; --border: #1e1e2e; --accent: #00ff88;
+    --accent2: #00ccff; --danger: #ff4466;
+    --text: #e8e8f0; --muted: #555570; --card: #13131e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Space Mono', monospace;
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; padding: 40px 20px 80px;
+    position: relative; overflow-x: hidden;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: linear-gradient(rgba(0,255,136,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,136,0.03) 1px, transparent 1px);
+    background-size: 40px 40px; pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: ''; position: fixed; width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,255,136,0.04) 0%, transparent 70%);
+    top: -200px; left: -200px; pointer-events: none; z-index: 0;
+  }
+  .container { position: relative; z-index: 1; width: 100%; max-width: 700px; }
+
+  /* Header */
+  header { text-align: center; margin-bottom: 48px; animation: fadeDown 0.6s ease both; }
+  .logo-line { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 12px; }
+  .logo-icon {
+    width: 42px; height: 42px; border: 2px solid var(--accent); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; font-size: 20px;
+    animation: pulse 3s ease-in-out infinite;
+  }
+  h1 {
+    font-family: 'Syne', sans-serif; font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 800; letter-spacing: -1px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .subtitle { color: var(--muted); font-size: 0.8rem; letter-spacing: 3px; text-transform: uppercase; }
+
+  /* Drop Zone */
+  .dropzone {
+    border: 2px dashed var(--border); border-radius: 16px;
+    background: var(--card); position: relative; cursor: pointer;
+    transition: border-color 0.3s, box-shadow 0.3s, background 0.3s;
+    animation: fadeUp 0.6s 0.1s ease both; overflow: hidden;
+  }
+  .dropzone-full { padding: 52px 32px; text-align: center; }
+  .dropzone-compact {
+    display: none; align-items: center; justify-content: center;
+    gap: 12px; padding: 14px 20px; color: var(--muted);
+    font-size: 0.75rem; letter-spacing: 1px; transition: color 0.2s;
+  }
+  .dropzone.has-files .dropzone-full    { display: none; }
+  .dropzone.has-files .dropzone-compact { display: flex; }
+  .dropzone:hover .dropzone-compact,
+  .dropzone.drag-over .dropzone-compact { color: var(--accent); }
+  .plus-circle {
+    width: 24px; height: 24px; border: 1.5px solid currentColor; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 1rem;
+    flex-shrink: 0; transition: transform 0.25s;
+  }
+  .dropzone:hover .plus-circle { transform: rotate(90deg) scale(1.15); }
+  .dropzone.drag-over {
+    border-color: var(--accent); background: rgba(0,255,136,0.04);
+    box-shadow: 0 0 32px rgba(0,255,136,0.15);
+  }
+  .drop-icon { font-size: 3rem; margin-bottom: 16px; display: block; transition: transform 0.3s; }
+  .dropzone.drag-over .drop-icon { transform: scale(1.1) translateY(-4px); }
+  .drop-title { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
+  .drop-sub   { color: var(--muted); font-size: 0.75rem; margin-bottom: 24px; }
+  .btn-select {
+    background: transparent; border: 1.5px solid var(--accent); color: var(--accent);
+    padding: 10px 24px; border-radius: 8px; font-family: 'Space Mono', monospace;
+    font-size: 0.78rem; cursor: pointer; transition: all 0.2s; letter-spacing: 1px; text-transform: uppercase;
+  }
+  .btn-select:hover { background: var(--accent); color: var(--bg); box-shadow: 0 0 20px rgba(0,255,136,0.4); }
+  #fileInput { display: none; }
+
+  /* Section label */
+  .section-label { display: none; align-items: center; justify-content: space-between; margin: 28px 0 12px; }
+  .section-label.visible { display: flex; animation: fadeUp 0.3s ease both; }
+  .section-left { display: flex; align-items: center; gap: 10px; }
+  .section-label .lbl { font-size: 0.7rem; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); }
+  .badge {
+    background: var(--accent); color: var(--bg); border-radius: 20px;
+    padding: 2px 10px; font-size: 0.7rem; font-weight: 700; font-family: 'Syne', sans-serif;
+    min-width: 28px; text-align: center; transition: transform 0.15s;
+  }
+  .badge.bump { transform: scale(1.35); }
+  .total-size { font-size: 0.68rem; color: var(--muted); }
+  .btn-clear-all {
+    background: none; border: 1px solid var(--border); color: var(--muted);
+    font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 1px;
+    text-transform: uppercase; padding: 4px 10px; border-radius: 6px; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-clear-all:hover { border-color: var(--danger); color: var(--danger); background: rgba(255,68,102,0.07); }
+
+  /* File list */
+  .file-list {
+    display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px;
+    max-height: 420px; overflow-y: auto; padding-right: 2px;
+  }
+  .file-list::-webkit-scrollbar { width: 4px; }
+  .file-list::-webkit-scrollbar-track { background: transparent; }
+  .file-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+  .file-item {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 11px 14px; display: flex; align-items: center; gap: 12px;
+    animation: slideIn 0.25s ease both; transition: border-color 0.2s; flex-shrink: 0;
+  }
+  .file-item:hover { border-color: var(--muted); }
+  .file-emoji { font-size: 1.15rem; width: 26px; text-align: center; flex-shrink: 0; }
+  .file-info  { flex: 1; min-width: 0; }
+  .file-name  { font-size: 0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .file-size  { font-size: 0.67rem; color: var(--muted); margin-top: 2px; }
+  .btn-remove {
+    background: none; border: none; cursor: pointer; color: var(--muted);
+    font-size: 0.95rem; padding: 4px 6px; border-radius: 4px;
+    transition: all 0.2s; line-height: 1; flex-shrink: 0;
+  }
+  .btn-remove:hover { color: var(--danger); background: rgba(255,68,102,0.1); }
+
+  /* ZIP name */
+  .input-group { margin-bottom: 20px; display: none; }
+  .input-group.visible { display: block; animation: fadeUp 0.3s ease both; }
+  .input-label { font-size: 0.7rem; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 8px; }
+  .input-row {
+    display: flex; align-items: center; background: var(--card);
+    border: 1px solid var(--border); border-radius: 10px; overflow: hidden; transition: border-color 0.2s;
+  }
+  .input-row:focus-within { border-color: var(--accent); }
+  .input-prefix { padding: 12px 14px; color: var(--accent); font-size: 1rem; }
+  input[type="text"] {
+    flex: 1; background: none; border: none; outline: none; color: var(--text);
+    font-family: 'Space Mono', monospace; font-size: 0.85rem; padding: 12px 0;
+  }
+  .input-ext { padding: 12px 14px; color: var(--muted); font-size: 0.8rem; }
+
+  /* Button */
+  .btn-create {
+    width: 100%; padding: 18px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    border: none; border-radius: 12px; color: var(--bg); font-family: 'Syne', sans-serif;
+    font-size: 1rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
+    cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden;
+    animation: fadeUp 0.5s 0.3s ease both;
+  }
+  .btn-create::before { content: ''; position: absolute; inset: 0; background: rgba(255,255,255,0.15); opacity: 0; transition: opacity 0.2s; }
+  .btn-create:hover:not(:disabled)::before { opacity: 1; }
+  .btn-create:hover:not(:disabled) { box-shadow: 0 8px 32px rgba(0,255,136,0.35); transform: translateY(-2px); }
+  .btn-create:active:not(:disabled) { transform: translateY(0); }
+  .btn-create:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* Progress */
+  .progress-wrap { display: none; margin-top: 16px; }
+  .progress-bar-bg { background: var(--border); border-radius: 99px; height: 4px; overflow: hidden; margin-bottom: 8px; }
+  .progress-bar-fill {
+    height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 99px; width: 0%; transition: width 0.3s ease; box-shadow: 0 0 8px rgba(0,255,136,0.5);
+  }
+  .progress-text { font-size: 0.72rem; color: var(--muted); text-align: center; }
+
+  /* Success */
+  .success-msg {
+    display: none; margin-top: 16px; background: rgba(0,255,136,0.07);
+    border: 1px solid rgba(0,255,136,0.25); border-radius: 10px; padding: 14px 18px;
+    font-size: 0.8rem; color: var(--accent); text-align: center; animation: fadeUp 0.3s ease both;
+  }
+
+  /* Footer */
+  footer {
+    margin-top: 48px; color: var(--muted); font-size: 0.68rem;
+    text-align: center; letter-spacing: 2px; line-height: 1.9;
+    animation: fadeUp 0.6s 0.5s ease both;
+  }
+  footer a { color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
+
+  @keyframes fadeDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes fadeUp   { from { opacity:0; transform:translateY(14px);  } to { opacity:1; transform:translateY(0); } }
+  @keyframes slideIn  { from { opacity:0; transform:translateX(-10px); } to { opacity:1; transform:translateX(0); } }
+  @keyframes pulse    { 0%,100% { box-shadow:0 0 16px rgba(0,255,136,0.3); } 50% { box-shadow:0 0 28px rgba(0,255,136,0.6); } }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo-line">
+      <div class="logo-icon">📦</div>
+      <h1>ZIP Archiver</h1>
+    </div>
+    <p class="subtitle">Unbegrenzt Dateien · Lokal · Kein Upload</p>
+  </header>
+
+  <div class="dropzone" id="dropzone">
+    <div class="dropzone-full">
+      <span class="drop-icon">⬆️</span>
+      <div class="drop-title">Dateien hier ablegen</div>
+      <div class="drop-sub">Klicken oder Drag &amp; Drop — alle Typen, unbegrenzt viele Dateien</div>
+      <button class="btn-select" onclick="document.getElementById('fileInput').click()">Dateien auswählen</button>
+    </div>
+    <div class="dropzone-compact">
+      <span class="plus-circle">+</span>
+      <span>Weitere Dateien hinzufügen — Klicken oder Ablegen</span>
+    </div>
+    <input type="file" id="fileInput" multiple>
+  </div>
+
+  <div class="section-label" id="sectionLabel">
+    <div class="section-left">
+      <span class="lbl">Dateien</span>
+      <span class="badge" id="fileCount">0</span>
+      <span class="total-size" id="totalSize"></span>
+    </div>
+    <button class="btn-clear-all" onclick="clearAll()">Alle entfernen</button>
+  </div>
+
+  <div class="file-list" id="fileList"></div>
+
+  <div class="input-group" id="inputGroup">
+    <label class="input-label" for="zipName">Archivname</label>
+    <div class="input-row">
+      <span class="input-prefix">🗜</span>
+      <input type="text" id="zipName" value="archiv" placeholder="mein-archiv">
+      <span class="input-ext">.zip</span>
+    </div>
+  </div>
+
+  <button class="btn-create" id="btnCreate" disabled onclick="createZip()">
+    ZIP Erstellen &amp; Herunterladen
+  </button>
+
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+    <div class="progress-text" id="progressText">Verarbeite Dateien…</div>
+  </div>
+
+  <div class="success-msg" id="successMsg">
+    ✅ ZIP-Archiv erfolgreich erstellt und heruntergeladen!
+  </div>
+</div>
+
+<footer>
+  ALLE DATEIEN WERDEN AUSSCHLIESSLICH LOKAL IM BROWSER VERARBEITET — KEIN UPLOAD<br>
+  🤖 Erstellt mit <a href="https://claude.ai" target="_blank">Claude KI (Anthropic)</a>
+</footer>
+
+<script>
+  let files = [];
+  const dropzone=document.getElementById('dropzone'), fileInput=document.getElementById('fileInput'),
+    fileList=document.getElementById('fileList'), fileCountEl=document.getElementById('fileCount'),
+    totalSizeEl=document.getElementById('totalSize'), sectionLabel=document.getElementById('sectionLabel'),
+    inputGroup=document.getElementById('inputGroup'), btnCreate=document.getElementById('btnCreate'),
+    progressWrap=document.getElementById('progressWrap'), progressFill=document.getElementById('progressFill'),
+    progressText=document.getElementById('progressText'), successMsg=document.getElementById('successMsg');
+
+  dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+  dropzone.addEventListener('dragleave', e => { if (!dropzone.contains(e.relatedTarget)) dropzone.classList.remove('drag-over'); });
+  dropzone.addEventListener('drop', e => { e.preventDefault(); dropzone.classList.remove('drag-over'); addFiles([...e.dataTransfer.files]); });
+  dropzone.addEventListener('click', e => { if (e.target.tagName !== 'BUTTON') fileInput.click(); });
+  fileInput.addEventListener('change', () => { addFiles([...fileInput.files]); fileInput.value = ''; });
+
+  // Drop anywhere on the page
+  document.addEventListener('dragover', e => e.preventDefault());
+  document.addEventListener('drop', e => { e.preventDefault(); addFiles([...e.dataTransfer.files]); });
+
+  function addFiles(newFiles) {
+    let added = 0;
+    newFiles.forEach(f => { if (!files.some(x => x.name===f.name && x.size===f.size)) { files.push(f); added++; } });
+    if (added) { renderList(); successMsg.style.display='none'; bumpBadge(); }
+  }
+  function removeFile(idx) { files.splice(idx,1); renderList(); }
+  function clearAll()      { files=[]; renderList(); }
+  function bumpBadge() {
+    fileCountEl.classList.remove('bump');
+    requestAnimationFrame(()=>requestAnimationFrame(()=>fileCountEl.classList.add('bump')));
+    setTimeout(()=>fileCountEl.classList.remove('bump'),200);
+  }
+
+  function renderList() {
+    fileList.innerHTML='';
+    const has=files.length>0;
+    dropzone.classList.toggle('has-files',has);
+    sectionLabel.classList.toggle('visible',has);
+    inputGroup.classList.toggle('visible',has);
+    btnCreate.disabled=!has;
+    fileCountEl.textContent=files.length;
+    totalSizeEl.textContent=has?'· '+fmt(files.reduce((s,f)=>s+f.size,0))+' gesamt':'';
+    files.forEach((f,i)=>{
+      const el=document.createElement('div');
+      el.className='file-item';
+      el.style.animationDelay=Math.min(i,15)*0.025+'s';
+      el.innerHTML=`<span class="file-emoji">${getEmoji(f.name)}</span><div class="file-info"><div class="file-name" title="${esc(f.name)}">${esc(f.name)}</div><div class="file-size">${fmt(f.size)}</div></div><button class="btn-remove" onclick="removeFile(${i})" title="Entfernen">✕</button>`;
+      fileList.appendChild(el);
+    });
+  }
+
+  function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  function fmt(b){return b<1024?b+' B':b<1048576?(b/1024).toFixed(1)+' KB':b<1073741824?(b/1048576).toFixed(2)+' MB':(b/1073741824).toFixed(2)+' GB';}
+  function getEmoji(n){const e=n.split('.').pop().toLowerCase();return({pdf:'📄',doc:'📝',docx:'📝',txt:'📃',md:'📃',rtf:'📃',jpg:'🖼️',jpeg:'🖼️',png:'🖼️',gif:'🖼️',webp:'🖼️',svg:'🖼️',bmp:'🖼️',ico:'🖼️',mp4:'🎬',mov:'🎬',avi:'🎬',mkv:'🎬',wmv:'🎬',webm:'🎬',mp3:'🎵',wav:'🎵',flac:'🎵',aac:'🎵',ogg:'🎵',zip:'📦',rar:'📦',tar:'📦',gz:'📦','7z':'📦',js:'⚙️',ts:'⚙️',py:'🐍',html:'🌐',css:'🎨',json:'📋',xml:'📋',xlsx:'📊',xls:'📊',csv:'📊',pptx:'📋',ppt:'📋',exe:'💾',dmg:'💾',pkg:'💾'}[e]||'📄');}
+
+  async function createZip() {
+    if (!files.length) return;
+    const name=document.getElementById('zipName').value.trim()||'archiv', zip=new JSZip();
+    btnCreate.disabled=true; progressWrap.style.display='block'; successMsg.style.display='none'; progressFill.style.width='0%';
+    for (let i=0;i<files.length;i++) {
+      progressText.textContent=`Lese ${i+1} / ${files.length}: ${files[i].name}`;
+      zip.file(files[i].name, await files[i].arrayBuffer());
+      progressFill.style.width=Math.round(((i+1)/files.length)*55)+'%';
+    }
+    progressText.textContent='Komprimiere Archiv…';
+    const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}},
+      m=>{progressFill.style.width=(55+Math.round(m.percent*0.45))+'%';});
+    progressFill.style.width='100%';
+    progressText.textContent='Fertig — '+fmt(blob.size);
+    const url=URL.createObjectURL(blob), a=Object.assign(document.createElement('a'),{href:url,download:name+'.zip'});
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    setTimeout(()=>{progressWrap.style.display='none';successMsg.style.display='block';btnCreate.disabled=false;},900);
+  }
+</script>
+</body>
+</html>
