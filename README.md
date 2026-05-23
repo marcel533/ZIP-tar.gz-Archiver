@@ -1,18 +1,7 @@
 # 📦 ZIP Archiver
 link:https://marcel533.github.io/ZIP-Archiver/
 
-Eine browserbasierte Webanwendung zum Komprimieren von **beliebig vielen** Dateien in ein ZIP-Archiv — ohne Installation, ohne Upload, direkt im Browser.
-
----
-
-## 🚀 So funktioniert es
-
-1. **Datei öffnen** — `zip-creator.html` einfach im Browser öffnen (Doppelklick genügt)
-2. **Dateien hinzufügen** — per Drag & Drop oder Klick auf die Dropzone
-3. **Beliebig viele weitere Dateien** — Die Dropzone bleibt immer aktiv. Sobald die erste Datei hinzugefügt wurde, erscheint ein kompakter Streifen „Weitere Dateien hinzufügen". Einfach nochmals klicken oder neue Dateien hineinziehen — **unbegrenzt oft**.
-4. **Archivname vergeben** — Im Eingabefeld den gewünschten Dateinamen für das ZIP eintragen
-5. **ZIP erstellen** — Auf „ZIP Erstellen & Herunterladen" klicken
-6. **Download** — Das fertige `.zip`-Archiv wird automatisch heruntergeladen
+Eine browserbasierte Webanwendung zum Komprimieren von **beliebig vielen** Dateien in ein ZIP-Archiv und .tar.gz. — ohne Installation, ohne Upload, direkt im Browser.
 
 ---
 
