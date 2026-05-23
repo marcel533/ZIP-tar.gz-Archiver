@@ -157,6 +157,24 @@
     transition: all 0.2s; line-height: 1; flex-shrink: 0;
   }
   .btn-remove:hover { color: var(--danger); background: rgba(255,68,102,0.1); }
+  .btn-rename {
+    background: none; border: none; cursor: pointer; color: var(--muted);
+    font-size: 0.85rem; padding: 4px 6px; border-radius: 4px;
+    transition: all 0.2s; line-height: 1; flex-shrink: 0;
+  }
+  .btn-rename:hover { color: var(--accent2); background: rgba(0,204,255,0.1); }
+  .file-name-input {
+    background: none; border: none; border-bottom: 1px solid var(--accent2);
+    outline: none; color: var(--text); font-family: 'Space Mono', monospace;
+    font-size: 0.8rem; width: 100%; padding: 1px 0;
+  }
+  .file-name.renamed { color: var(--accent2); }
+  .btn-rename-confirm {
+    background: none; border: none; cursor: pointer; color: var(--accent);
+    font-size: 0.85rem; padding: 4px 6px; border-radius: 4px;
+    transition: all 0.2s; line-height: 1; flex-shrink: 0;
+  }
+  .btn-rename-confirm:hover { background: rgba(0,255,136,0.1); }
 
   /* ── Archive name ── */
   .input-group { margin-bottom: 20px; display: none; }
@@ -284,7 +302,8 @@
 </footer>
 
 <script>
-  let files  = [];
+  let files     = [];
+  let fileNames = []; // custom names parallel to files[]
   let format = 'zip'; // 'zip' | 'targz'
 
   const dropzone     = document.getElementById('dropzone'),
@@ -345,11 +364,11 @@
   /* ── File management ──────────────────────────────────────────── */
   function addFiles(newFiles) {
     let added = 0;
-    newFiles.forEach(f => { if (!files.some(x => x.name===f.name && x.size===f.size)) { files.push(f); added++; } });
+    newFiles.forEach(f => { if (!files.some(x => x.name===f.name && x.size===f.size)) { files.push(f); fileNames.push(f.name); added++; } });
     if (added) { renderList(); successMsg.style.display='none'; bumpBadge(); }
   }
-  function removeFile(idx) { files.splice(idx,1); renderList(); }
-  function clearAll()      { files=[]; renderList(); }
+  function removeFile(idx) { files.splice(idx,1); fileNames.splice(idx,1); renderList(); }
+  function clearAll()      { files=[]; fileNames=[]; renderList(); }
   function bumpBadge() {
     fileCountEl.classList.remove('bump');
     requestAnimationFrame(()=>requestAnimationFrame(()=>fileCountEl.classList.add('bump')));
@@ -368,9 +387,58 @@
       const el = document.createElement('div');
       el.className = 'file-item';
       el.style.animationDelay = Math.min(i,15)*0.025+'s';
-      el.innerHTML = `<span class="file-emoji">${getEmoji(f.name)}</span><div class="file-info"><div class="file-name" title="${esc(f.name)}">${esc(f.name)}</div><div class="file-size">${fmt(f.size)}</div></div><button class="btn-remove" onclick="removeFile(${i})" title="Entfernen">✕</button>`;
+      const customName = fileNames[i];
+      const isRenamed = customName !== f.name;
+      el.innerHTML = `
+        <span class="file-emoji">${getEmoji(customName)}</span>
+        <div class="file-info">
+          <div class="file-name${isRenamed?' renamed':''}" id="fname-${i}" title="${esc(customName)}">${esc(customName)}</div>
+          <div class="file-size">${fmt(f.size)}${isRenamed ? ' · <span style="color:var(--accent2);font-size:0.62rem">umbenannt</span>' : ''}</div>
+        </div>
+        <button class="btn-rename" onclick="startRename(${i})" title="Umbenennen">✏️</button>
+        <button class="btn-remove" onclick="removeFile(${i})" title="Entfernen">✕</button>`;
       fileList.appendChild(el);
     });
+  }
+
+  function getExt(name) {
+    const m = name.match(/(\.(tar\.gz|tar\.bz2|tar\.xz)$)|(\.[^.]+$)/i);
+    return m ? m[0] : '';
+  }
+  function getBaseName(name) { return name.slice(0, name.length - getExt(name).length); }
+
+  function startRename(idx) {
+    const nameEl = document.getElementById('fname-'+idx);
+    if (!nameEl) return;
+    const current = fileNames[idx];
+    const ext     = getExt(current);
+    const base    = getBaseName(current);
+    const item    = nameEl.closest('.file-item');
+
+    nameEl.innerHTML = `<span style="display:flex;align-items:center;gap:2px;width:100%"><input class="file-name-input" id="finput-${idx}" value="${esc(base)}" maxlength="200" style="flex:1;min-width:0"><span style="color:var(--muted);font-size:0.8rem;white-space:nowrap;flex-shrink:0">${esc(ext)}</span></span>`;
+    const input = document.getElementById('finput-'+idx);
+
+    const renameBtn = item.querySelector('.btn-rename');
+    renameBtn.className = 'btn-rename-confirm';
+    renameBtn.title = 'Bestätigen';
+    renameBtn.textContent = '✓';
+    renameBtn.onclick = () => confirmRename(idx);
+
+    input.focus();
+    input.select();
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') confirmRename(idx);
+      if (e.key === 'Escape') renderList();
+    });
+  }
+
+  function confirmRename(idx) {
+    const input = document.getElementById('finput-'+idx);
+    if (!input) return;
+    const base = input.value.trim();
+    const ext  = getExt(fileNames[idx]);
+    if (base) fileNames[idx] = base + ext;
+    renderList();
   }
 
   /* ── Helpers ──────────────────────────────────────────────────── */
@@ -426,7 +494,7 @@
     const pairs = [];
     for (let i=0; i<files.length; i++) {
       progressText.textContent = `Lese ${i+1} / ${files.length}: ${files[i].name}`;
-      pairs.push({ name: files[i].name, data: new Uint8Array(await files[i].arrayBuffer()) });
+      pairs.push({ name: fileNames[i], data: new Uint8Array(await files[i].arrayBuffer()) });
       progressFill.style.width = Math.round(((i+1)/files.length)*45) + '%';
     }
 
