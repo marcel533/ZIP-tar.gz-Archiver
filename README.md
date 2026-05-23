@@ -1,7 +1,7 @@
 # ZIP-tar.gz-Archiver
 link:https:https://marcel533.github.io/ZIP-tar.gz-Archiver/
 
-Eine browserbasierte Webanwendung zum Komprimieren von **beliebig vielen** Dateien in ein ZIP-Archiv und .tar.gz. — ohne Installation, ohne Upload, direkt im Browser.
+Eine browserbasierte Webanwendung zum Komprimieren von **beliebig vielen** Dateien in ein ZIP-Archiv und .tar.gz — ohne Installation, ohne Upload, direkt im Browser.
 
 ---
 
