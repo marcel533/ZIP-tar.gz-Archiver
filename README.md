@@ -1,43 +1,47 @@
 # ZIP-tar.gz-Archiver
-link:https://marcel533.github.io/ZIP-tar.gz-Archiver/
 
-Eine browserbasierte Webanwendung zum Komprimieren von **beliebig vielen** Dateien in ein ZIP-Archiv und .tar.gz — ohne Installation, ohne Upload, direkt im Browser.
+[ EN | DE ]
 
----
+> Browserbasierte Dateikomprimierung zu ZIP und `.tar.gz`. Lokal, ohne Server-Upload.
 
-## ✨ Features
-
-- **Unbegrenzte Dateien** — Beliebig viele Dateien in mehreren Schritten hinzufügen
-- **Drag & Drop** — Dateien direkt in die Seite ziehen (auch auf die gesamte Seite)
-- **Alle Dateitypen** — PDFs, Bilder, Videos, Code-Dateien, Office-Dokumente usw.
-- **Gesamtgröße** — Zeigt an, wie viele Dateien und wie viel MB/GB insgesamt
-- **Einzeln entfernen** — Jede Datei einzeln aus der Liste löschen
-- **Alle entfernen** — Liste mit einem Klick leeren
-- **Fortschrittsbalken** — Echtzeit-Anzeige während der Komprimierung
-- **Kein Server, kein Upload** — Alles läuft lokal im Browser
+[Live App](https://marcel533.github.io/ZIP-tar.gz-Archiver/)
 
 ---
 
-## 🔒 Datenschutz
+## DE
 
-Alle Dateien werden **ausschließlich lokal** im Browser verarbeitet. Es verlässt kein einziges Byte Ihren Computer. Kein Server, kein Cloud-Upload, keine Registrierung.
+### Eigenschaften
+- **Unbegrenzte Dateien:** Beliebig viele Dateien und Formate (PDF, Bilder, Videos, Code) in mehreren Schritten hinzufügen.
+- **Drag & Drop:** Dateien auf der Seite ablegen.
+- **Statistiken:** Anzeige von Dateianzahl und Gesamtgröße.
+- **Dateiverwaltung:** Dateien einzeln entfernen oder Liste leeren.
+- **Fortschrittsanzeige:** Statusanzeige während der Komprimierung.
+- **Datenschutz:** Verabeitung läuft vollständig im Browser. Es werden keine Daten übertragen.
+
+### Technologie
+- **Basis:** HTML, CSS, JavaScript (Vanilla)
+- **Komprimierung:** [JSZip 3.10](https://stuk.github.io/jszip/) (DEFLATE Level 6)
+- **Kompatibilität:** Chrome, Firefox, Safari, Edge
+
+### Entwicklung
+Erstellt von **marcel533** unter Einsatz von Claude Sonnet via [claude.ai](https://claude.ai).
 
 ---
 
-## 🛠️ Technologie
+## EN
 
-| Komponente | Details |
-|---|---|
-| Sprache | HTML, CSS, JavaScript (kein Framework) |
-| Komprimierung | [JSZip 3.10](https://stuk.github.io/jszip/) — DEFLATE Level 6 |
-| Installation | Keine — einfach `.html` im Browser öffnen |
-| Browserunterstützung | Alle modernen Browser (Chrome, Firefox, Safari, Edge) |
+### Features
+- **Unlimited Files:** Add any number of files and formats (PDFs, images, video, code) in multiple steps.
+- **Drag & Drop:** Drop files anywhere on the page.
+- **Statistics:** Real-time file count and total size display.
+- **File Management:** Remove individual files or clear the list.
+- **Progress Indicator:** Status feedback during compression.
+- **Privacy:** 100% client-side processing. No data is uploaded or transmitted.
 
----
+### Tech Stack
+- **Core:** HTML, CSS, JavaScript (Vanilla)
+- **Compression:** [JSZip 3.10](https://stuk.github.io/jszip/) (DEFLATE Level 6)
+- **Browser Support:** Chrome, Firefox, Safari, Edge
 
-## 🤖 KI-Hinweis
-
-> Diese Webseite wurde vollständig mit **Claude** (KI-Modell von [Anthropic](https://www.anthropic.com)) erstellt.  
-> Kein Code wurde manuell geschrieben — Konzept, Design, Logik und Umsetzung entstanden durch natürlichsprachliche Prompts an das KI-Modell.  
-> Verwendet wurde **Claude Sonnet** über [claude.ai](https://claude.ai).
-
+### Development
+Created by **marcel533** using Claude Sonnet via [claude.ai](https://claude.ai).
