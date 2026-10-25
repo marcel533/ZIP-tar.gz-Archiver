@@ -680,7 +680,7 @@
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   window.t = (k) => (D[lang][k] ?? D.de[k] ?? k);
 
-  const contact = '<a href="mailto:marcel.worgotter@proton.me">marcel.worgotter@proton.me</a><br>GitHub: <a href="https://github.com/marcel533" target="_blank" rel="noopener">github.com/marcel533</a>';
+  const contact = 'GitHub: <a href="https://github.com/marcel533" target="_blank" rel="noopener">github.com/marcel533</a>';
   const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
 
   function renderTos(split) {
@@ -691,7 +691,7 @@
     $('tosDiscordTxt').textContent = t('discord');
     $('tosBody').innerHTML = T.s.map(([h, c]) => {
       let b;
-      if (c === 'C') b = '<p>E-Mail: ' + contact + '</p>';
+      if (c === 'C') b = '<p>' + contact + '</p>';
       else if (Array.isArray(c)) { const [first, ...rest] = c; const hasLead = c.length && /[:.]$/.test(first) && rest.length > 1 && h.startsWith('4'); b = (hasLead ? '<p>' + esc(first) + '</p>' : '') + '<ul>' + (hasLead ? rest : c).map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>'; }
       else b = '<p>' + esc(c) + '</p>';
       return '<section class="tos-sec"><h2>' + esc(h) + '</h2>' + b + '</section>';
