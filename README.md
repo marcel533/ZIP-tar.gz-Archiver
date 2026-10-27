@@ -2,13 +2,9 @@
 
 [ EN | DE ]
 
-> Browserbasierte Dateikomprimierung zu ZIP und `.tar.gz`. Lokal, ohne Server-Upload.
-
-[Live App](https://marcel533.github.io/ZIP-tar.gz-Archiver/)
-
----
-
 ## DE
+
+eine web app mit der sie dateien in eine .zip und .tar.gz komprimieren kannst.
 
 ### Eigenschaften
 - **Unbegrenzte Dateien:** Beliebig viele Dateien und Formate (PDF, Bilder, Videos, Code) in mehreren Schritten hinzufügen.
@@ -30,6 +26,8 @@ Erstellt von **marcel533** unter Einsatz von Claude Sonnet via [claude.ai](https
 
 ## EN
 
+a web app that lets you compress files into a .zip and .tar.gz.
+
 ### Features
 - **Unlimited Files:** Add any number of files and formats (PDFs, images, video, code) in multiple steps.
 - **Drag & Drop:** Drop files anywhere on the page.
@@ -45,3 +43,5 @@ Erstellt von **marcel533** unter Einsatz von Claude Sonnet via [claude.ai](https
 
 ### Development
 Created by **marcel533** using Claude Sonnet via [claude.ai](https://claude.ai).
+
+[Live App](https://marcel533.github.io/ZIP-tar.gz-Archiver/)
