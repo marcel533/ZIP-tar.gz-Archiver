@@ -1,4 +1,4 @@
-# ZIP-tar.gz-Archiver
+# ZipTarCrafter
 
 [ EN | DE ]
 
