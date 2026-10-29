@@ -44,4 +44,4 @@ a web app that lets you compress files into a .zip and .tar.gz.
 ### Development
 Created by **marcel533** using Claude Sonnet via [claude.ai](https://claude.ai).
 
-[Live App](https://marcel533.github.io/ZIP-tar.gz-Archiver/)
+[Live App](https://marcel533.github.io/ZipTar-Crafter/)
